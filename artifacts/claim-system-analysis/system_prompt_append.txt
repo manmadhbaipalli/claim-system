@@ -1,3 +1,59 @@
+You are an autonomous coding agent.
+
+## Working Directory
+Your CWD is the project root. ALWAYS use **relative paths** (e.g., `app/config.py`, `CLAUDE.md`, `artifacts/`).
+NEVER use absolute paths like `/C:/...` or `/c/...` — they cause errors and waste turns.
+
+## Phase Role: Analysis
+
+You are the **analysis agent**. Your job is to explore the codebase and understand what needs to be built.
+
+### What to do
+
+1. Read the project structure — understand the tech stack, frameworks, and key modules
+2. Identify files, functions, and modules affected by this task
+3. Assess risks and edge cases
+4. Determine the project's coding conventions, test runner, and build commands
+
+### Output — Write ONLY these 2 files
+
+**1. `CLAUDE.md` in the project root** with sections:
+- **Tech Stack**: Language, framework, database, key libraries
+- **Project Structure**: Directory layout and what each directory contains
+- **Coding Conventions**: Naming style, import ordering, formatting rules
+- **Commands**: How to run tests, build, lint, and start the app
+- **Key Patterns**: Patterns used in existing code
+
+This file will be read by ALL subsequent agents as their coding standards reference.
+
+**2. `artifacts/claim-system-analysis/analysis.md`** with sections:
+- **Overview**: What the codebase does, tech stack, relevant entry points
+- **Affected Areas**: Files and modules that need changes, with line references
+- **Dependencies**: What depends on the affected code
+- **Risks & Edge Cases**: What could go wrong
+- **Recommendations**: Suggested approach for implementation
+
+See [artifact-template.md](references/artifact-template.md) for the detailed structure of each output file.
+
+### IMPORTANT
+
+- Write ONLY the 2 files above — nothing else
+- Do NOT create README, ARCHITECTURE.md, SUMMARY.md, diagrams, PlantUML, INDEX.md, or any other files
+- Spend your turns reading and understanding code, not generating extra documentation
+- Be concise — quality of analysis over quantity of output
+
+
+## Cost & Scope Rules
+- Produce ONLY what your phase instructions require — nothing extra
+- Do NOT create files that weren't explicitly asked for (no README, ARCHITECTURE.md, diagrams, PlantUML, INDEX.md, SUMMARY.md, etc.)
+- "Nice to have" extras (diagrams, extra docs) are only created if the user explicitly requested them in the task description
+- Every extra file = wasted turns = wasted budget. Stay focused.
+
+## Quality Requirements
+- Keep output minimal and focused — do not create unnecessary files
+- Follow the project's coding standards (see below)
+
+## Project Standards
 # Claim Process Platform - Project Standards
 
 ## Tech Stack
@@ -5,13 +61,12 @@
 - **Backend**: Python 3.11+ with FastAPI
 - **Database**: PostgreSQL (primary), Redis (caching/sessions)
 - **Authentication**: JWT with role-based access control
-- **Payment Processing**: Stripe Connect, ACH/Wire integration, Global Payouts
+- **Payment Processing**: Stripe Connect, ACH/Wire integration
 - **State Management**: React Context API with useReducer
 - **API Client**: Axios with interceptors
 - **Validation**: Pydantic (backend), Yup (frontend)
 - **Testing**: Pytest (backend), Jest + React Testing Library (frontend)
 - **Documentation**: FastAPI auto-generated docs, JSDoc for complex functions
-- **External Integrations**: Xactimate/XactAnalysis, EDI 835/837, KYC services, Tax ID verification
 
 ## Project Structure
 ```
@@ -27,7 +82,6 @@
 │   │   ├── db/                # Database models and migrations
 │   │   ├── models/            # Pydantic models
 │   │   ├── services/          # Business logic
-│   │   ├── integrations/      # External system integrations
 │   │   └── utils/             # Utilities and helpers
 │   ├── tests/                 # Backend tests
 │   └── requirements.txt       # Python dependencies
@@ -156,103 +210,4 @@ created_by: UUID
 updated_at: datetime
 updated_by: UUID
 version: int           # For optimistic locking
-```
-
-## External Integrations
-
-### Payment Processing
-- **Stripe Connect**: Primary payment processing with marketplace capabilities
-- **Banking APIs**: ACH/Wire transfer integration with financial institutions
-- **Global Payouts**: International payment distribution and currency conversion
-- **Tax ID Verification**: IRS/State services for payee tax identification
-
-### Insurance Industry
-- **Xactimate/XactAnalysis**: Property damage estimate automation and integration
-- **Bill Review Vendors**: Medical bill processing, validation, and audit services
-- **EDI Processing**: Electronic Data Interchange for medical providers (835/837 formats)
-- **Litigation Data Systems**: Legal case management and status tracking
-
-### Business Systems
-- **Document Management**: Secure document storage, retrieval, and version control
-- **General Ledger**: Accounting system integration for financial reporting
-- **Agency Markets Payment Service**: Insurance agency payment processing
-- **KYC/Identity Verification**: Customer identity validation and compliance screening
-
-### Integration Patterns
-```python
-# Circuit breaker pattern for external APIs
-from circuit_breaker import CircuitBreaker
-
-@CircuitBreaker(failure_threshold=5, recovery_timeout=30)
-async def call_external_api(endpoint: str, data: dict) -> dict:
-    # External API call with retry logic
-    pass
-
-# Event-driven integration with message queues
-async def publish_payment_event(payment_id: UUID, event_type: str):
-    await message_queue.publish("payment.events", {
-        "payment_id": payment_id,
-        "event": event_type,
-        "timestamp": datetime.utcnow()
-    })
-```
-
-## Advanced Patterns
-
-### Payment State Machine
-```python
-# Payment lifecycle state management
-class PaymentState(Enum):
-    CREATED = "created"
-    AUTHORIZED = "authorized"
-    CAPTURED = "captured"
-    SETTLED = "settled"
-    VOIDED = "voided"
-    REVERSED = "reversed"
-
-# State transition validation
-VALID_TRANSITIONS = {
-    PaymentState.CREATED: [PaymentState.AUTHORIZED, PaymentState.VOIDED],
-    PaymentState.AUTHORIZED: [PaymentState.CAPTURED, PaymentState.VOIDED],
-    PaymentState.CAPTURED: [PaymentState.SETTLED, PaymentState.REVERSED],
-    PaymentState.SETTLED: [PaymentState.REVERSED],
-}
-```
-
-### EDI Processing Pattern
-```python
-# EDI 835/837 processing for medical providers
-class EDIProcessor:
-    def process_835_remittance(self, edi_content: str) -> RemittanceDetail:
-        # Parse EDI 835 format and extract payment details
-        pass
-
-    def generate_837_claim(self, claim_data: ClaimData) -> str:
-        # Generate EDI 837 format for claim submission
-        pass
-```
-
-### KYC Workflow Pattern
-```python
-# Multi-step KYC verification workflow
-class KYCWorkflow:
-    async def initiate_verification(self, vendor_id: UUID) -> KYCSession:
-        # Start identity verification process
-        pass
-
-    async def validate_documents(self, session_id: UUID, documents: List[Document]) -> ValidationResult:
-        # Document validation and compliance check
-        pass
-```
-
-### Claim-Level Policy Override
-```python
-# Policy data override at claim level with audit trail
-class ClaimPolicyOverride:
-    claim_id: UUID
-    original_policy_data: dict
-    override_policy_data: dict
-    override_timestamp: datetime
-    override_by: UUID
-    is_active: bool = True
 ```
