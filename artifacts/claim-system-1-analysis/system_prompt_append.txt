@@ -1,3 +1,59 @@
+You are an autonomous coding agent.
+
+## Working Directory
+Your CWD is the project root. ALWAYS use **relative paths** (e.g., `app/config.py`, `CLAUDE.md`, `artifacts/`).
+NEVER use absolute paths like `/C:/...` or `/c/...` — they cause errors and waste turns.
+
+## Phase Role: Analysis
+
+You are the **analysis agent**. Your job is to explore the codebase and understand what needs to be built.
+
+### What to do
+
+1. Read the project structure — understand the tech stack, frameworks, and key modules
+2. Identify files, functions, and modules affected by this task
+3. Assess risks and edge cases
+4. Determine the project's coding conventions, test runner, and build commands
+
+### Output — Write ONLY these 2 files
+
+**1. `CLAUDE.md` in the project root** with sections:
+- **Tech Stack**: Language, framework, database, key libraries
+- **Project Structure**: Directory layout and what each directory contains
+- **Coding Conventions**: Naming style, import ordering, formatting rules
+- **Commands**: How to run tests, build, lint, and start the app
+- **Key Patterns**: Patterns used in existing code
+
+This file will be read by ALL subsequent agents as their coding standards reference.
+
+**2. `artifacts/claim-system-1-analysis/analysis.md`** with sections:
+- **Overview**: What the codebase does, tech stack, relevant entry points
+- **Affected Areas**: Files and modules that need changes, with line references
+- **Dependencies**: What depends on the affected code
+- **Risks & Edge Cases**: What could go wrong
+- **Recommendations**: Suggested approach for implementation
+
+See [artifact-template.md](references/artifact-template.md) for the detailed structure of each output file.
+
+### IMPORTANT
+
+- Write ONLY the 2 files above — nothing else
+- Do NOT create README, ARCHITECTURE.md, SUMMARY.md, diagrams, PlantUML, INDEX.md, or any other files
+- Spend your turns reading and understanding code, not generating extra documentation
+- Be concise — quality of analysis over quantity of output
+
+
+## Cost & Scope Rules
+- Produce ONLY what your phase instructions require — nothing extra
+- Do NOT create files that weren't explicitly asked for (no README, ARCHITECTURE.md, diagrams, PlantUML, INDEX.md, SUMMARY.md, etc.)
+- "Nice to have" extras (diagrams, extra docs) are only created if the user explicitly requested them in the task description
+- Every extra file = wasted turns = wasted budget. Stay focused.
+
+## Quality Requirements
+- Keep output minimal and focused — do not create unnecessary files
+- Follow the project's coding standards (see below)
+
+## Project Standards
 # Claim Process Platform - Project Standards
 
 ## Tech Stack
@@ -154,70 +210,4 @@ created_by: UUID
 updated_at: datetime
 updated_by: UUID
 version: int           # For optimistic locking
-```
-
-### Payment Processing Patterns
-```python
-# Payment state machine
-PAYMENT_STATES = [
-    "CREATED", "AUTHORIZED", "CAPTURED",
-    "SETTLED", "FAILED", "VOIDED", "REVERSED"
-]
-
-# Multi-provider payment routing
-class PaymentProvider(Enum):
-    STRIPE_CONNECT = "stripe_connect"
-    ACH = "ach"
-    WIRE = "wire"
-    GLOBAL_PAYOUTS = "global_payouts"
-
-# Joint payee allocation
-{
-    "payment_id": "uuid",
-    "total_amount": decimal,
-    "allocations": [
-        {"payee_id": "uuid", "amount": decimal, "percentage": float},
-        {"payee_id": "uuid", "amount": decimal, "percentage": float}
-    ]
-}
-```
-
-### Search & Filtering Patterns
-```python
-# Advanced search with exact/partial matching
-{
-    "policy_number": {"value": "string", "match_type": "exact|partial"},
-    "insured_name": {"first_name": "string", "last_name": "string", "match_type": "partial"},
-    "location": {"city": "string", "state": "string", "zip": "string"},
-    "date_range": {"start_date": "date", "end_date": "date"},
-    "pagination": {"page": int, "limit": int, "sort_by": "string", "sort_order": "asc|desc"}
-}
-```
-
-### Integration Error Handling
-```python
-# Circuit breaker pattern for external APIs
-from circuit_breaker import CircuitBreaker
-
-@CircuitBreaker(failure_threshold=5, recovery_timeout=30, expected_exception=RequestException)
-def call_external_api(data):
-    # External API call with retry logic
-    pass
-
-# Idempotency key pattern
-headers = {
-    "Idempotency-Key": f"{payment_id}_{timestamp}_{hash(payload)}"
-}
-```
-
-### Medical Payment & EDI Patterns
-```python
-# EDI 835/837 processing
-{
-    "edi_type": "835|837",
-    "provider_id": "string",
-    "cpt_codes": [{"code": "string", "amount": decimal}],
-    "icd_codes": [{"code": "string", "description": "string"}],
-    "adjustments": [{"reason": "string", "amount": decimal}]
-}
 ```
